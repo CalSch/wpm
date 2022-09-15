@@ -1,11 +1,12 @@
 import chalk from "chalk";
-import termSize from "term-size";
 import stringLength from "string-length";
+import term from "term-size";
+
 
 function print(lt,rt) {
 	return (
 		lt +
-		" ".repeat(Math.max(termSize().columns-stringLength(lt)-stringLength(rt),0)) +
+		" ".repeat(term().columns-stringLength(lt)-stringLength(rt)) +
 		rt
 	);
 }
@@ -16,15 +17,10 @@ function info(str) {
 	let rightText=``;
 	console.log(chalk.bgRgb(0,36,60)(print(leftText,rightText)));
 }
-function get(str) {
-	let leftText=`${chalk.greenBright("▎ ↓ GET")} ${str}`;
+function success(str) {
+	let leftText=`${chalk.greenBright("▎ ✓ SUCCESS")}: ${str}`;
 	let rightText=``;
-	console.log(chalk.bgRgb(0,30,0)(print(leftText,rightText)));
-}
-function post(str) {
-	let leftText=`${chalk.magentaBright("▎ ↑ POST")} ${str}`;
-	let rightText=``;
-	console.log(chalk.bgRgb(35,0,60)(print(leftText,rightText)));
+	console.log(chalk.bgRgb(0,60,0)(print(leftText,rightText)));
 }
 function warn(str) {
 	let leftText=`${chalk.yellowBright("▎ ⚠ WARN")}: ${str}`;
@@ -37,4 +33,4 @@ function err(str) {
 	console.log(chalk.bgRgb(60,0,0)(print(leftText,rightText)));
 }
 
-export {info,get,post,err,warn,print};
+export {info,err,success,warn}

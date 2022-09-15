@@ -1,50 +1,26 @@
 #!/usr/bin/env node
 import { Command, Argument } from "commander";
-import fs from "fs";
-import path from "path";
-import chalk from "chalk";
-import ansi from "ansi-styles";
-import 'ejs';
+import fs from "fs-extra";
+import ejs from 'ejs';
 import 'child_process';
-import stringLength from "string-length"; "string-length";
-import term from "term-size";
 import { exec } from "child_process";
+import {err,info,success,warn} from './logs.mjs';
+import inquirer from "inquirer";
 const app=new Command();
 
-function print(lt,rt) {
-	return (
-		lt +
-		" ".repeat(term().columns-stringLength(lt)-stringLength(rt)) +
-		rt
-	);
-}
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-function info(str) {
-	// console.log(chalk.blueBright("ℹ INFO")+chalk.dim.bgBlue(`: ${str}`));
-	let leftText=`${chalk.blueBright("▎ ℹ INFO")}: ${str}`;
-	let rightText=``;
-	console.log(chalk.bgRgb(0,36,60)(print(leftText,rightText)));
-}
-function success(str) {
-	let leftText=`${chalk.greenBright("▎ ✓ SUCCESS")}: ${str}`;
-	let rightText=``;
-	console.log(chalk.bgRgb(0,60,0)(print(leftText,rightText)));
-}
-function warn(str) {
-	let leftText=`${chalk.yellowBright("▎ ⚠ WARN")}: ${str}`;
-	let rightText=``;
-	console.log(chalk.bgRgb(60,36,0)(print(leftText,rightText)));
-}
-function err(str) {
-	let leftText=`${chalk.redBright("▎ ⨯ ERR")}: ${str}`;
-	let rightText=``;
-	console.log(chalk.bgRgb(60,0,0)(print(leftText,rightText)));
-}
+let questions=[
+	{
+		type: 'input',
+		name: 'proj_name',
+		message: "What's your project name?",
+	},	
+]
 
-// success("success test");
-// info("info test");
-// warn("warn test");
-// err("err test");
 
 app
 .name("Wep Project Maker")
@@ -56,12 +32,24 @@ app.command('init')
 .description('Initialize a new project.')
 .action(async (name,config_file)=>{
 	if (name) {
-		fs.mkdirSync(name);
+		if (!fs.existsSync(name)) fs.mkdirSync(name);
 		process.chdir(name);
 		info(`Made and moved to directory ${name}`);
+	} else {
+		await inquirer.prompt(questions).then((answers)=>{
+			console.dir(answers)
+			name=answers.proj_name;
+		}).catch((error) => {
+			if (error.isTtyError) {
+				err("Could not render prompt")
+			} else {
+				err("Error")
+				console.dir(error);
+			}
+		});
 	}
 
-	fs.cpSync(`${__dirname}/template/*`,`.`);
+	fs.copySync(`${__dirname}/template`,`${process.cwd()}`,{overwrite:true});
 	fs.writeFileSync('./package.json',await ejs.renderFile('./package.json',{name}));
 })
 
